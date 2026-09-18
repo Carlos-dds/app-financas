@@ -1,24 +1,40 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 export default function LancarGastoScreen() {
   const [valor, setValor] = useState('');
   const [descricao, setDescricao] = useState('');
   const [categoria, setCategoria] = useState('Alimentação');
+  const [salvando, setSalvando] = useState(false);
 
   const categorias = ['Alimentação', 'Transporte', 'Lazer', 'Moradia', 'Outros'];
 
-  function salvarGasto() {
+  async function salvarGasto() {
     if (!valor) {
       Alert.alert('Ops', 'Informe um valor para o gasto.');
       return;
     }
 
-    console.log({ valor, descricao, categoria });
-    Alert.alert('Salvo!', `Gasto de R$ ${valor} em ${categoria} registrado.`);
+    setSalvando(true);
+    try {
+      await addDoc(collection(db, 'gastos'), {
+        valor: parseFloat(valor.replace(',', '.')),
+        descricao,
+        categoria,
+        criadoEm: Timestamp.now(),
+      });
 
-    setValor('');
-    setDescricao('');
+      Alert.alert('Salvo!', `Gasto de R$ ${valor} em ${categoria} registrado.`);
+      setValor('');
+      setDescricao('');
+    } catch (erro) {
+      console.error(erro);
+      Alert.alert('Erro', 'Não foi possível salvar o gasto. Tente novamente.');
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
@@ -62,8 +78,14 @@ export default function LancarGastoScreen() {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.botaoSalvar} onPress={salvarGasto}>
-        <Text style={styles.botaoSalvarTexto}>Salvar Gasto</Text>
+      <TouchableOpacity
+        style={styles.botaoSalvar}
+        onPress={salvarGasto}
+        disabled={salvando}
+      >
+        <Text style={styles.botaoSalvarTexto}>
+          {salvando ? 'Salvando...' : 'Salvar Gasto'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
