@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import {
   collection, query, where, orderBy, onSnapshot,
-  addDoc, doc, updateDoc, deleteDoc, increment, Timestamp,
+  addDoc, doc, updateDoc, deleteDoc, increment, Timestamp, writeBatch,
 } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 import { useCores } from '../hooks/useCores';
@@ -82,22 +82,40 @@ export default function GuardadoScreen() {
   }
 
   function guardarDinheiro(meta: Meta) {
-    Alert.prompt(
-      `Guardar em "${meta.nome}"`,
-      'Quanto você quer adicionar?',
-      async (valorDigitado) => {
-        const valor = parseFloat((valorDigitado || '').replace(',', '.'));
-        if (!valor || valor <= 0) return;
-        try {
-          await updateDoc(doc(db, 'metas', meta.id), { valorAtual: increment(valor) });
-        } catch (erro) {
-          console.error(erro);
-          Alert.alert('Erro', 'Não foi possível atualizar a meta.');
-        }
-      },
-      'plain-text', '', 'numeric'
-    );
-  }
+  Alert.prompt(
+    `Guardar em "${meta.nome}"`,
+    'Quanto você quer adicionar?',
+    async (valorDigitado) => {
+      const valor = parseFloat((valorDigitado || '').replace(',', '.'));
+      if (!valor || valor <= 0) return;
+
+      try {
+        const lote = writeBatch(db);
+
+        lote.update(doc(db, 'metas', meta.id), {
+          valorAtual: increment(valor),
+        });
+
+        const novoAporteRef = doc(collection(db, 'aportes'));
+        lote.set(novoAporteRef, {
+          valor,
+          metaId: meta.id,
+          metaNome: meta.nome,
+          userId: auth.currentUser?.uid,
+          criadoEm: Timestamp.now(),
+        });
+
+        await lote.commit();
+      } catch (erro) {
+        console.error(erro);
+        Alert.alert('Erro', 'Não foi possível atualizar a meta.');
+      }
+    },
+    'plain-text',
+    '',
+    'numeric'
+  );
+}
 
   return (
     <View style={[styles.container, { backgroundColor: c.fundo }]}>
