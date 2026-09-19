@@ -11,6 +11,7 @@ import {
   doc,
 } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
+import { useCores } from '../hooks/useCores';
 
 type Gasto = {
   id: string;
@@ -20,6 +21,7 @@ type Gasto = {
 };
 
 export default function InicioScreen() {
+  const c = useCores();
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
   useEffect(() => {
@@ -51,7 +53,6 @@ export default function InicioScreen() {
       async (novoValor) => {
         const valor = parseFloat((novoValor || '').replace(',', '.'));
         if (!valor || valor <= 0) return;
-
         try {
           await updateDoc(doc(db, 'gastos', gasto.id), { valor });
         } catch (erro) {
@@ -88,10 +89,12 @@ export default function InicioScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.label}>Saldo atual</Text>
-        <Text style={styles.saldo}>R$ {saldoAtual.toFixed(2)}</Text>
+    <View style={[styles.container, { backgroundColor: c.fundo }]}>
+      <View style={[styles.header, { borderBottomColor: c.borda }]}>
+        <Text style={[styles.label, { color: c.textoSecundario }]}>Saldo atual</Text>
+        <Text style={[styles.saldo, { color: c.primaria }]}>
+          R$ {saldoAtual.toFixed(2)}
+        </Text>
       </View>
 
       <FlatList
@@ -99,26 +102,32 @@ export default function InicioScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.lista}
         ListEmptyComponent={
-          <Text style={styles.vazio}>Nenhum gasto lançado ainda</Text>
+          <Text style={[styles.vazio, { color: c.textoSecundario }]}>
+            Nenhum gasto lançado ainda
+          </Text>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.item}
+            style={[styles.item, { borderBottomColor: c.borda }]}
             onPress={() => editarGasto(item)}
             onLongPress={() => apagarGasto(item)}
           >
             <View>
-              <Text style={styles.itemDescricao}>
+              <Text style={[styles.itemDescricao, { color: c.texto }]}>
                 {item.descricao || 'Sem descrição'}
               </Text>
-              <Text style={styles.itemCategoria}>{item.categoria}</Text>
+              <Text style={[styles.itemCategoria, { color: c.textoSecundario }]}>
+                {item.categoria}
+              </Text>
             </View>
-            <Text style={styles.itemValor}>R$ {item.valor.toFixed(2)}</Text>
+            <Text style={[styles.itemValor, { color: c.perigo }]}>
+              R$ {item.valor.toFixed(2)}
+            </Text>
           </TouchableOpacity>
         )}
       />
 
-      <Text style={styles.dicaGeral}>
+      <Text style={[styles.dicaGeral, { color: c.textoSecundario }]}>
         Toque num gasto para editar o valor · Segure para apagar
       </Text>
     </View>
@@ -127,31 +136,20 @@ export default function InicioScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  label: { fontSize: 16, color: '#666' },
+  header: { alignItems: 'center', paddingVertical: 24, borderBottomWidth: 1 },
+  label: { fontSize: 16 },
   saldo: { fontSize: 40, fontWeight: 'bold', marginTop: 8 },
   lista: { padding: 20 },
-  vazio: { textAlign: 'center', color: '#999', marginTop: 40 },
+  vazio: { textAlign: 'center', marginTop: 40 },
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   itemDescricao: { fontSize: 16 },
-  itemCategoria: { fontSize: 13, color: '#999', marginTop: 2 },
-  itemValor: { fontSize: 16, fontWeight: 'bold', color: '#dc2626' },
-  dicaGeral: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#999',
-    paddingBottom: 16,
-  },
+  itemCategoria: { fontSize: 13, marginTop: 2 },
+  itemValor: { fontSize: 16, fontWeight: 'bold' },
+  dicaGeral: { textAlign: 'center', fontSize: 12, paddingBottom: 16 },
 });
