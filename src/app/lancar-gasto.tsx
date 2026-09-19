@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 
 export default function LancarGastoScreen() {
   const [valor, setValor] = useState('');
@@ -19,12 +19,13 @@ export default function LancarGastoScreen() {
 
     setSalvando(true);
     try {
-      await addDoc(collection(db, 'gastos'), {
+        await addDoc(collection(db, 'gastos'), {
         valor: parseFloat(valor.replace(',', '.')),
         descricao,
         categoria,
         criadoEm: Timestamp.now(),
-      });
+        userId: auth.currentUser?.uid,
+        });
 
       Alert.alert('Salvo!', `Gasto de R$ ${valor} em ${categoria} registrado.`);
       setValor('');

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
 type Gasto = {
   id: string;
@@ -14,7 +14,11 @@ export default function InicioScreen() {
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'gastos'), orderBy('criadoEm', 'desc'));
+   const q = query(
+    collection(db, 'gastos'),
+    where('userId', '==', auth.currentUser?.uid),
+    orderBy('criadoEm', 'desc')
+  );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const lista = snapshot.docs.map((doc) => ({
