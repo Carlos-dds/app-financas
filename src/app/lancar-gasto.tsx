@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 import { useCores } from '../hooks/useCores';
@@ -41,7 +41,8 @@ export default function LancarGastoScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: c.fundo }]}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={[styles.container, { backgroundColor: c.fundo }]}>
       <Text style={[styles.label, { color: c.textoSecundario }]}>Valor</Text>
       <TextInput
         style={[styles.input, { borderColor: c.borda, color: c.texto, backgroundColor: c.fundoSecundario }]}
@@ -94,7 +95,8 @@ export default function LancarGastoScreen() {
           {salvando ? 'Salvando...' : 'Salvar Gasto'}
         </Text>
       </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 

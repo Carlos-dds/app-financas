@@ -22,3 +22,11 @@ export const cores = {
     cardFundo: '#1A211D',
   },
 };
+
+export const coresCategorias: Record<string, string> = {
+  'Alimentação': '#F59E0B',
+  'Transporte': '#3B82F6',
+  'Lazer': '#EC4899',
+  'Moradia': '#8B5CF6',
+  'Outros': '#6B7280',
+};
