@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
+import { View, Text, FlatList, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  deleteDoc,
+  updateDoc,
+  doc,
+} from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
 type Gasto = {
@@ -14,11 +23,11 @@ export default function InicioScreen() {
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
   useEffect(() => {
-   const q = query(
-    collection(db, 'gastos'),
-    where('userId', '==', auth.currentUser?.uid),
-    orderBy('criadoEm', 'desc')
-  );
+    const q = query(
+      collection(db, 'gastos'),
+      where('userId', '==', auth.currentUser?.uid),
+      orderBy('criadoEm', 'desc')
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const lista = snapshot.docs.map((doc) => ({
@@ -35,6 +44,49 @@ export default function InicioScreen() {
 
   const saldoAtual = gastos.reduce((total, gasto) => total - gasto.valor, 0);
 
+  function editarGasto(gasto: Gasto) {
+    Alert.prompt(
+      'Editar valor',
+      `Novo valor para "${gasto.descricao || 'gasto'}"`,
+      async (novoValor) => {
+        const valor = parseFloat((novoValor || '').replace(',', '.'));
+        if (!valor || valor <= 0) return;
+
+        try {
+          await updateDoc(doc(db, 'gastos', gasto.id), { valor });
+        } catch (erro) {
+          console.error(erro);
+          Alert.alert('Erro', 'Não foi possível atualizar o gasto.');
+        }
+      },
+      'plain-text',
+      String(gasto.valor),
+      'numeric'
+    );
+  }
+
+  function apagarGasto(gasto: Gasto) {
+    Alert.alert(
+      'Apagar gasto',
+      `Apagar "${gasto.descricao || 'gasto'}" de R$ ${gasto.valor.toFixed(2)}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'gastos', gasto.id));
+            } catch (erro) {
+              console.error(erro);
+              Alert.alert('Erro', 'Não foi possível apagar o gasto.');
+            }
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -50,7 +102,11 @@ export default function InicioScreen() {
           <Text style={styles.vazio}>Nenhum gasto lançado ainda</Text>
         }
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => editarGasto(item)}
+            onLongPress={() => apagarGasto(item)}
+          >
             <View>
               <Text style={styles.itemDescricao}>
                 {item.descricao || 'Sem descrição'}
@@ -58,9 +114,13 @@ export default function InicioScreen() {
               <Text style={styles.itemCategoria}>{item.categoria}</Text>
             </View>
             <Text style={styles.itemValor}>R$ {item.valor.toFixed(2)}</Text>
-          </View>
+          </TouchableOpacity>
         )}
       />
+
+      <Text style={styles.dicaGeral}>
+        Toque num gasto para editar o valor · Segure para apagar
+      </Text>
     </View>
   );
 }
@@ -88,4 +148,10 @@ const styles = StyleSheet.create({
   itemDescricao: { fontSize: 16 },
   itemCategoria: { fontSize: 13, color: '#999', marginTop: 2 },
   itemValor: { fontSize: 16, fontWeight: 'bold', color: '#dc2626' },
+  dicaGeral: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#999',
+    paddingBottom: 16,
+  },
 });

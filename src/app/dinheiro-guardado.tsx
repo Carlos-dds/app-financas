@@ -17,10 +17,33 @@ import {
   addDoc,
   doc,
   updateDoc,
+  deleteDoc,
   increment,
   Timestamp,
 } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
+
+function apagarMeta(meta: Meta) {
+  Alert.alert(
+    'Apagar meta',
+    `Apagar a meta "${meta.nome}"? Isso não apaga o dinheiro guardado, só a meta.`,
+    [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Apagar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteDoc(doc(db, 'metas', meta.id));
+          } catch (erro) {
+            console.error(erro);
+            Alert.alert('Erro', 'Não foi possível apagar a meta.');
+          }
+        },
+      },
+    ]
+  );
+}
 
 type Meta = {
   id: string;
@@ -148,8 +171,9 @@ export default function GuardadoScreen() {
           const progresso = Math.min(item.valorAtual / item.valorMeta, 1);
           return (
             <TouchableOpacity
-              style={styles.card}
-              onPress={() => guardarDinheiro(item)}
+                style={styles.card}
+                onPress={() => guardarDinheiro(item)}
+                onLongPress={() => apagarMeta(item)}
             >
               <View style={styles.cardHeader}>
                 <Text style={styles.cardNome}>{item.nome}</Text>
