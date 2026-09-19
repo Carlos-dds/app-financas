@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { iconesCategorias } from '../constants/categorias';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 import { useCores } from '../hooks/useCores';
@@ -65,25 +67,31 @@ export default function LancarGastoScreen() {
       <Text style={[styles.label, { color: c.textoSecundario }]}>Categoria</Text>
       <View style={styles.categorias}>
         {categorias.map((cat) => {
-          const selecionada = categoria === cat;
-          return (
-            <TouchableOpacity
-              key={cat}
-              style={[
-                styles.categoriaBotao,
-                {
-                  borderColor: selecionada ? c.primaria : c.borda,
-                  backgroundColor: selecionada ? c.primaria : 'transparent',
-                },
-              ]}
-              onPress={() => setCategoria(cat)}
-            >
-              <Text style={{ color: selecionada ? '#fff' : c.texto, fontWeight: selecionada ? 'bold' : 'normal' }}>
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+            const selecionada = categoria === cat;
+            return (
+                <TouchableOpacity
+                key={cat}
+                style={[
+                    styles.categoriaBotao,
+                    {
+                    borderColor: selecionada ? c.primaria : c.borda,
+                    backgroundColor: selecionada ? c.primaria : 'transparent',
+                    },
+                ]}
+                onPress={() => setCategoria(cat)}
+                >
+                <Ionicons
+                    name={iconesCategorias[cat] as any}
+                    size={16}
+                    color={selecionada ? '#fff' : c.texto}
+                    style={{ marginRight: 6 }}
+                />
+                <Text style={{ color: selecionada ? '#fff' : c.texto, fontWeight: selecionada ? 'bold' : 'normal' }}>
+                    {cat}
+                </Text>
+                </TouchableOpacity>
+            );
+            })}
       </View>
 
       <TouchableOpacity
@@ -105,7 +113,14 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, marginTop: 16, marginBottom: 6 },
   input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16 },
   categorias: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  categoriaBotao: { borderWidth: 1, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14 },
+ categoriaBotao: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    },
   botaoSalvar: { borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 32 },
   botaoSalvarTexto: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

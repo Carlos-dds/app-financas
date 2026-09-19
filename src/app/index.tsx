@@ -6,6 +6,8 @@ import {
 import { db, auth } from '../firebaseConfig';
 import { useCores } from '../hooks/useCores';
 import { coresCategorias } from '../constants/cores';
+import { Ionicons } from '@expo/vector-icons';
+import { iconesCategorias } from '../constants/categorias';
 
 type Gasto = { id: string; valor: number; descricao: string; categoria: string };
 
@@ -136,24 +138,29 @@ export default function InicioScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.item, { borderBottomColor: c.borda }]}
-            onPress={() => editarGasto(item)}
-            onLongPress={() => apagarGasto(item)}
-          >
-            <View>
-              <Text style={[styles.itemDescricao, { color: c.texto }]}>
-                {item.descricao || 'Sem descrição'}
-              </Text>
-              <Text style={[styles.itemCategoria, { color: c.textoSecundario }]}>
-                {item.categoria}
-              </Text>
-            </View>
-            <Text style={[styles.itemValor, { color: c.perigo }]}>
-              R$ {item.valor.toFixed(2)}
-            </Text>
-          </TouchableOpacity>
-        )}
+  <TouchableOpacity
+    style={[styles.item, { borderBottomColor: c.borda }]}
+    onPress={() => editarGasto(item)}
+    onLongPress={() => apagarGasto(item)}
+  >
+    <View style={styles.itemEsquerda}>
+      <View style={[styles.iconeCirculo, { backgroundColor: coresCategorias[item.categoria] || c.primaria }]}>
+        <Ionicons name={iconesCategorias[item.categoria] as any} size={18} color="#fff" />
+      </View>
+      <View>
+        <Text style={[styles.itemDescricao, { color: c.texto }]}>
+          {item.descricao || 'Sem descrição'}
+        </Text>
+        <Text style={[styles.itemCategoria, { color: c.textoSecundario }]}>
+          {item.categoria}
+        </Text>
+      </View>
+    </View>
+    <Text style={[styles.itemValor, { color: c.perigo }]}>
+      R$ {item.valor.toFixed(2)}
+    </Text>
+  </TouchableOpacity>
+)}
         ListFooterComponent={
           gastos.length > 0 ? (
             <Text style={[styles.dicaGeral, { color: c.textoSecundario }]}>
@@ -183,9 +190,14 @@ const styles = StyleSheet.create({
   tituloLista: { fontSize: 16, fontWeight: 'bold', paddingHorizontal: 20, marginBottom: 8 },
   vazio: { textAlign: 'center', marginTop: 40 },
   item: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 12, paddingHorizontal: 20, borderBottomWidth: 1,
-  },
+  flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  paddingVertical: 12, paddingHorizontal: 20, borderBottomWidth: 1,
+},
+itemEsquerda: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+iconeCirculo: {
+  width: 36, height: 36, borderRadius: 18,
+  alignItems: 'center', justifyContent: 'center',
+},
   itemDescricao: { fontSize: 16 },
   itemCategoria: { fontSize: 13, marginTop: 2 },
   itemValor: { fontSize: 16, fontWeight: 'bold' },
